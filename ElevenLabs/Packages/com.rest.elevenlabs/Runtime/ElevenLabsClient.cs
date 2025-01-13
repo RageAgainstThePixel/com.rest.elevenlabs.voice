@@ -9,13 +9,15 @@ using ElevenLabs.User;
 using ElevenLabs.VoiceGeneration;
 using ElevenLabs.Voices;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using Utilities.WebRequestRest;
+using Utilities.WebSockets;
 
 namespace ElevenLabs
 {
-    public sealed class ElevenLabsClient : BaseClient<ElevenLabsAuthentication, ElevenLabsSettings>
+    public sealed class ElevenLabsClient : BaseClient<ElevenLabsAuthentication, ElevenLabsSettings>, IDisposable
     {
         /// <inheritdoc/>
         public ElevenLabsClient(ElevenLabsConfiguration configuration)
@@ -36,6 +38,7 @@ namespace ElevenLabs
         public ElevenLabsClient(ElevenLabsAuthentication authentication = null, ElevenLabsSettings settings = null)
             : base(authentication ?? ElevenLabsAuthentication.Default, settings ?? ElevenLabsSettings.Default)
         {
+            //ElevenLabsSocket = new WebSocket(settings!.Info.WebSocketDomain);
             UserEndpoint = new UserEndpoint(this);
             VoicesEndpoint = new VoicesEndpoint(this);
             ModelsEndpoint = new ModelsEndpoint(this);
@@ -83,6 +86,8 @@ namespace ElevenLabs
             DefaultValueHandling = DefaultValueHandling.Ignore
         };
 
+        internal WebSocket ElevenLabsSocket { get; }
+
         public UserEndpoint UserEndpoint { get; }
 
         public VoicesEndpoint VoicesEndpoint { get; }
@@ -100,5 +105,10 @@ namespace ElevenLabs
         public DubbingEndpoint DubbingEndpoint { get; }
 
         public SoundGenerationEndpoint SoundGenerationEndpoint { get; }
+
+        public void Dispose()
+        {
+            ElevenLabsSocket?.Dispose();
+        }
     }
 }
